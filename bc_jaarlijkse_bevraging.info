@@ -1,0 +1,10 @@
+; $Id$
+ 
+name = bc_jaarlijkse_bevraging
+description = Jaarlijkse KPI bevraging
+package = Blauwe Cluster
+core = 7.x
+ 
+files[] = bc_jaarlijkse_bevraging.module
+files[] = bc_jaarlijkse_bevraging.css
+files[] = bc_jaarlijkse_bevraging.inc

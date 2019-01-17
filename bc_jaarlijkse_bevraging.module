@@ -1,0 +1,88 @@
+<?php
+
+function bc_jaarlijkse_bevraging_menu() {
+	$items = array();
+
+	$items['bevraging-kpi-blauwe-cluster'] = array(
+		'title' => 'Bevraging',
+		'page callback' => 'bc_jaarlijkse_bevraging_page',
+		'access arguments' => array('access content'),
+		'type' => MENU_CALLBACK,
+	);
+
+	return $items;
+}
+
+function bc_jaarlijkse_bevraging_page() {
+	// get the path of the current module and add the css
+	$path = drupal_get_path('module', 'bc_jaarlijkse_bevraging');
+	drupal_add_css($path . '/bc_jaarlijkse_bevraging.css', array('group' => CSS_DEFAULT, 'type' => 'file'));
+
+	// initialize civicrm
+	civicrm_initialize();
+
+	// return the form
+	return drupal_get_form('bc_jaarlijkse_bevraging_form');
+}
+
+function bc_jaarlijkse_bevraging_form($form, &$form_state) {
+	// get the query parameters from the URL
+	$urlParams = drupal_get_query_parameters();
+
+	try {
+		// check if we just succesfully processed an evaluation
+		if (isset($urlParams['ok']) && $urlParams['ok'] == 1) {
+			throw new Exception('Dank u!');
+		}
+
+		// make sure we have the user's hash in the url
+		if (!isset($urlParams['a']) || strlen($urlParams['a']) != 32) {
+			throw new Exception('De door u gebruikte hyperlink is niet geldig.');
+		}
+
+		// get the questions for this contact
+    $bc = new BcBevraging($urlParams['a']);
+/*
+    // show welcome message
+    $form['welcome'] = array(
+      '#type' => 'item',
+      '#title' => '',
+      '#markup' => '<p>Dag ' . $contact['first_name'] . '. Jouw mening over onze activiteiten is belangrijk voor onze werking. Je persoonlijke feedback wordt - enkel voor intern gebruik - vertrouwelijk behandeld.<p>',
+    );
+
+				$form['q2_' . $registration['event_id']] = array(
+					'#type' => 'radios',
+					'#title' => 'In welke mate zou u dit evenement aanraden aan collega\'s en kennissen?',
+					'#options' => $options,
+					'#required' => TRUE,
+					'#suffix' => '(0 = Zeer onwaarschijnlijk, 10 = Zeer waarschijnlijk)<br /><br />',
+				);
+
+				// add hidden field with contact id
+				$form['cid_' . $registration['event_id']] = array(
+					'#type' => 'hidden',
+					'#default_value' => $registration['contact_id'],
+				);
+*/
+	}
+	catch (Exception $e) {
+		$form['error'] = array(
+			'#type' => 'item',
+			'#title' => '',
+			'#markup' => '<p>' . $e->getMessage() . '</p>',
+		);
+	}
+
+	return $form;
+}
+
+function bc_jaarlijkse_bevraging_submit($form, &$form_state) {
+	try {
+    //$form_state['values']
+		drupal_set_message('Hartelijk dank voor het invullen van deze enquête!', 'status');
+		drupal_goto('bevraging-kpi-blauwe-cluster', ['query' => ['ok' => 1]]);
+	}
+	catch (Exception $e) {
+		drupal_set_message($e->getMessage(), 'error');
+	}
+}
