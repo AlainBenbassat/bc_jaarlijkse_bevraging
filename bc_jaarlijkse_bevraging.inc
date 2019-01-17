@@ -17,22 +17,38 @@ class BcSurvey {
 
   public function __construct($contactHash) {
     $this->getContact($contactHash);
+
+    $this->surveyYear = 2018;
   }
 
 
   private function getContact($contactHash) {
-    // get the user with this checksum
-    $params = array(
-      'hash' => $contactHash,
-    );
-    $contact = civicrm_api3('contact', 'get', $params);
+    $sql = "
+      select
+        c.id
+        , c.first_name
+        , c.last_name
+        , c.organization_name
+        , c.employer_id
+      from
+        civicrm_contact c 
+      where 
+        c.id = %1
+    ";
+    $sqlParams = [
+      1 => [$contactHash, 'Integer'],
+    ];
+    $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
 
-    // make sure we have a contact
-    if ($contact['count'] != 1) {
-      throw new Exception('Uw gegevens konden niet opgehaald worden.');
+    if ($dao->fetch()) {
+      $this->contactID = $dao->id;
+      $this->contactFirstName = $dao->first_name;
+      $this->contactLastName = $dao->last_name;
+      $this->organizationID = $dao->employer_id;
+      $this->organizationName = $dao->organization_name;
     }
-    $contact = reset($contact['values']);
-
-    var_dump($contact);
+    else {
+      throw new Exception('Uw gegevens konden niet worden opgehaald.');
+    }
   }
 }
